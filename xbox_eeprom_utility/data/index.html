@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Xbox EEPROM Utility</title>
+        <link href="https://fonts.googleapis.com/css?family=Varela+Round&display=swap" rel="stylesheet">
+        <style>
+            body    {
+                background-color: lightgray;
+                margin: auto;
+                padding: 10px;
+                max-width: 500px;
+            }
+            h1{
+                font-family: 'Varela Round', sans-serif;
+                margin: auto;
+                padding: 10px;
+                max-width: 500px;
+            }
+            
+            #box {
+              font-family: 'Varela Round', sans-serif;
+              font-size: 85%;
+              position: relative;
+              top: 10px;
+              border-radius: 20px;
+              background: white;
+              padding: 20px;
+              width: 460px;
+              height: 200px;
+            }
+            
+            #hdkeybox {
+              font-family: 'Varela Round', sans-serif;
+              font-size: 85%;
+              position: relative;
+              top: 30px;
+              border-radius: 20px;
+              background: white;
+              padding: 20px;
+              width: 460px;
+              height: 200px;
+            }
+            
+            #currentHDkey {
+                color:blue;
+                border: 2px solid blue;
+            }
+            #flashsuccess {
+                position: absolute;
+                bottom: -10px;
+                right: 30px;
+                color:green;
+            }
+        
+            #newHDkey {
+                width: 280px;
+            }
+        .inline {
+           display:inline-block;
+           margin-right:2px;
+        }
+        .icon{
+            float:right;
+            margin-top:-50px;
+        }
+        </style>
+    </head>
+    <body>
+        <h1>Xbox EEPROM Utility</h1>
+        <a href="https://icons8.com/icon/d_berrgsGmSV/bios"><img class="icon" src="https://img.icons8.com/ios/50/000000/bios--v1.png"></a>
+        <div id="box">
+            <h2>Dump your Xbox EEPROM</h2>
+            <a href="/eeprom.bin">Download your eeprom.bin</a>
+            <h2>.. or flash a new eeprom.bin to your Xbox</h2>
+            <form action="/" id="eepromfile" method="post" enctype="multipart/form-data">
+                <input id="eepromfilename" name="name" type="file">
+            </form>
+            <br>
+            <button class="inline" onclick="flashEEPROM()">Flash</button>
+            <button class="inline" onclick="setReset()">Reset Xbox</button>
+            <p id="flashsuccess"></p>
+        </div>
+        <div id="hdkeybox">
+            <br><br>
+            Your current HDD Key is:
+            <p id="currentHDkey"></p><br>
+            You can change it here:<br>
+            <input type="text" id="newHDkey" name="hdkey" maxlength=32><br><br>
+            <button class="inline" onclick="changeKey()">Change Key</button>
+            <button class="inline" onclick="getKey()">Reload Key</button>
+        </div>
+            <script>
+                
+                getKey();
+                
+                function getKey(){
+                    var xhttp = new XMLHttpRequest();
+                    xhttp.onreadystatechange = function() {
+                        if (this.readyState == 4 && this.status == 200) {
+                            document.getElementById("currentHDkey").innerHTML =
+                            this.responseText;
+                            document.getElementById("currentHDkey").style.color = "blue";
+                        }
+                    };
+                    xhttp.open("GET", "/upd", true);
+                    xhttp.send();
+                }
+                
+                function changeKey(){
+                    var key = document.getElementById("newHDkey").value;
+                    //everything else
+                    
+                    if(key.length < 32){
+                        alert("The key must have 32 characters!");
+                        exit();
+                    }
+                    
+                    var hdHide = document.getElementById("currentHDkey");
+                    //hdHide.style.color = "red";
+                    
+                    var postKey = new XMLHttpRequest();
+                    
+                    postKey.open("GET", "/upd?hdkey=" + key, true);
+                    postKey.onreadystatechange = function(){
+                        if(postKey.readyState == 4 && postKey.status == 200){
+                            hdHide.style.color = "green";
+                            hdHide.innerHTML = postKey.responseText;
+                        }
+                        else if(postKey.status != 200) {
+                            hdHide.style.color = "red";
+                        }
+                    }
+                    
+                    postKey.send();
+                }
+                function flashEEPROM(){
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "/", true);
+                    
+                    xhr.onload = function(){
+                        if(this.status == 200){
+                            document.getElementById("flashsuccess").innerHTML = "flash was " + xhr.responseText;
+                            getKey();
+                            document.getElementById("currentHDkey").style.color = "blue";
+                        }
+                        else{
+                            document.getElementById("flashsuccess").innerHTML = "flash was " + xhr.responseText;
+                            document.getElementById("flashsuccess").style.color = "red";
+                        }
+                        
+                    };
+                    var formData = new FormData(document.getElementById("eepromfile"));
+                    xhr.send(formData);
+                }
+                function setLEDpattern(){
+                    var ledbyte = 0; //All are off, this is a buffer.
+                    var tmp = document.getElementsByName("rcycle[]");
+                    
+                    for(var i = 0; i < tmp.length; i++){
+                        ledbyte = ledbyte << 1;
+                        if(tmp[i].checked){
+                            ledbyte |= 1;
+                        }
+                    }
+                    tmp = document.getElementsByName("gcycle[]");
+                    
+                    for(var i = 0; i < tmp.length; i++){
+                        ledbyte = ledbyte << 1;
+                        if(tmp[i].checked){
+                            ledbyte |= 1;
+                        }
+                    }
+                    
+                    var xhttp = new XMLHttpRequest();
+                    xhttp.open("GET", "/smc?led="+ledbyte, false);
+                    xhttp.send();
+                }
+            function setReset(){
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("GET", "/smc?reset", false);
+                xhttp.send();
+            }
+            </script>
+
+    </body>
+</html> 
