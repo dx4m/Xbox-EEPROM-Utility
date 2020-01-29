@@ -1,0 +1,70 @@
+@font-face{
+    font-family: 'Varela Round';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url(/Varela-Mini.woff2) format('woff2');
+    unicode-range: U+0000-007F;
+}
+body    {
+    background-color: lightgray;
+    margin: auto;
+    padding: 10px;
+    max-width: 500px;
+}
+
+h1{
+    font-family: 'Varela Round', sans-serif;
+    margin: auto;
+    padding: 10px;
+    max-width: 500px;
+}
+
+#box {
+  font-family: 'Varela Round', sans-serif;
+  font-size: 85%;
+  position: relative;
+  top: 10px;
+  border-radius: 20px;
+  background: white;
+  padding: 20px;
+  width: 460px;
+  height: 200px;
+}
+
+#hdkeybox {
+  font-family: 'Varela Round', sans-serif;
+  font-size: 85%;
+  position: relative;
+  top: 30px;
+  border-radius: 20px;
+  background: white;
+  padding: 20px;
+  width: 460px;
+  height: 200px;
+}
+
+#currentHDkey {
+    color:blue;
+    border: 2px solid blue;
+}
+#flashsuccess {
+    position: absolute;
+    bottom: -10px;
+    right: 30px;
+    color:green;
+}
+
+#newHDkey {
+    width: 280px;
+}
+
+.inline {
+   display:inline-block;
+   margin-right:2px;
+}
+
+.icon{
+    float:right;
+    margin-top:-70px;
+}

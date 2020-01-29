@@ -1,5 +1,6 @@
 # Xbox EEPROM Utility
 Original Xbox EEPROM Utility to dump, change and edit your eeprom based on an ESP8266.
+It is expandable to do some SMC related stuff too, like LED control of your console or even reboot/shutdown remotelly
 
 # How to use it?
 * Open with the Arduino IDE with installed esp8266 support.
@@ -21,8 +22,8 @@ For the guys that need that thing more often, can order an adapter board for the
 https://oshpark.com/shared_projects/FJLqjN4W
 
 # History
-v0.5 - New pretty website + new name
-v0.4 - (unreleased)Added the ability to talk to the SMC
-v0.3 - Added "on the fly" HDD key changer
-v0.2 - Added ESP-01 functionality
-v0.1 - Initial Release
+* v0.5 - New pretty website + new name
+* v0.4 - (unreleased)Added the ability to talk to the SMC
+* v0.3 - Added "on the fly" HDD key changer
+* v0.2 - Added ESP-01 functionality
+* v0.1 - Initial Release
