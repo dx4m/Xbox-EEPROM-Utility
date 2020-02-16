@@ -22,7 +22,7 @@
 #include <ArduinoOTA.h>
 #include <ArduinoJson.h>
 
-static const char PAYLOAD_VERSION[] = "V0.6";
+static const char PAYLOAD_VERSION[] = "V0.6.1";
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,7 +64,7 @@ int found_smc = 0;
 
 #define PWR_REBOOT 0x01
 #define LED_MODE_SEQ 0x01
-#define LED_ORANGE 0xCC
+#define LED_ORANGE 0xFF
 #define SKIP_ANIMATION 0x04
 #define RUN_DASH 0x08
 
@@ -518,16 +518,16 @@ void setup() {
   // put your setup code here, to run once:
 
   Serial.begin(115200);
-  Serial.printf("Starting payload version: %s", PAYLOAD_VERSION);
+  Serial.printf("Starting payload version: %s\n", PAYLOAD_VERSION);
 
 #ifndef ESP01
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
 #endif
 
-/* This waits 1 second, so the Xbox can boot up. (Or up and down 3x when eeprom bricked)*/
+/* This waits 3 second, so the Xbox can boot up. (Or up and down 3x when eeprom bricked)*/
 #ifdef POWERFROMXBOX
-  delay(1000);
+  delay(3000);
 #endif
 
 #ifdef TESTMODE
@@ -567,15 +567,18 @@ void setup() {
     delay(1000);
 #endif
 
+#ifdef ESP01
     Wire.beginTransmission(smc_addr);
     Wire.write(REG_LED_SEQ);
-    Wire.write(LED_ORANGE); // blinks slowly orange
+    Wire.write(LED_ORANGE); // solid orange
     Wire.endTransmission();
 
     Wire.beginTransmission(smc_addr);
     Wire.write(REG_LED_MODE);
-    Wire.write(LED_MODE_SEQ); // changes to blinky lights
+    Wire.write(LED_MODE_SEQ); // changes to custom lights
     Wire.endTransmission();
+#endif
+
   }
   
   WiFiManager wifiManager;
