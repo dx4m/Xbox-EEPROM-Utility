@@ -1,10 +1,21 @@
-function getKey(){
+var defaultMode = true;
+
+function getInfo(){
     var xhttp = new XMLHttpRequest();
+    
+    var hdkey = document.getElementById("hdkey");
+    var serial = document.getElementById("serial");
+    var xversion = document.getElementById("xversion");
+    var macaddr = document.getElementById("macaddr");
+    
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            document.getElementById("currentHDkey").innerHTML =
-            this.responseText;
-            document.getElementById("currentHDkey").style.color = "blue";
+            var xjson = JSON.parse(this.responseText);
+            hdkey.style.color = "black";
+            hdkey.innerHTML = xjson.hdkey;
+            serial.innerHTML = xjson.serial;
+            xversion.innerHTML = xjson.xversion;
+            macaddr.innerHTML = xjson.macaddr;
         }
     };
     xhttp.open("GET", "/upd", true);
@@ -20,7 +31,7 @@ function changeKey(){
         exit();
     }
     
-    var hdHide = document.getElementById("currentHDkey");
+    var hdHide = document.getElementById("hdkey");
     //hdHide.style.color = "red";
     
     var postKey = new XMLHttpRequest();
@@ -28,8 +39,9 @@ function changeKey(){
     postKey.open("GET", "/upd?hdkey=" + key, true);
     postKey.onreadystatechange = function(){
         if(postKey.readyState == 4 && postKey.status == 200){
+            var xjson = JSON.parse(this.responseText);
             hdHide.style.color = "green";
-            hdHide.innerHTML = postKey.responseText;
+            hdHide.innerHTML = xjson.hdkey;
         }
         else if(postKey.status != 200) {
             hdHide.style.color = "red";
@@ -51,8 +63,7 @@ function flashEEPROM(){
     xhr.onload = function(){
         if(this.status == 200){
             document.getElementById("flashsuccess").innerHTML = "flash was " + xhr.responseText;
-            getKey();
-            document.getElementById("currentHDkey").style.color = "blue";
+            getInfo();
         }
         else{
             document.getElementById("flashsuccess").innerHTML = "flash was " + xhr.responseText;
@@ -70,4 +81,40 @@ function setReset(){
     xhttp.send();
 }
 
-getKey();
+function nullKey(){
+    document.getElementById("newHDkey").value = "00000000000000000000000000000000";
+}
+
+function clearKey(){
+    document.getElementById("newHDkey").value = "";
+}
+
+function copyKey(){
+    var hdkey = document.getElementById("hdkey");
+    var range = document.createRange();
+    range.selectNode(hdkey);
+    window.getSelection().addRange(range);
+    
+    document.execCommand("copy");
+    alert("Copied " + hdkey.innerHTML + " successfully.");
+}
+
+function changeTo(){
+    var link = document.getElementById("downloadEEPROM");
+    var mode = document.getElementById("decryptedMode");
+    if(defaultMode == true){
+        link.innerHTML = "!!WARNING!! Download your DECRYPTED decr_eeprom.bin";
+        link.href = "/decr_eeprom.bin";
+        mode.style.visibility = "hidden";
+        defaultMode = false
+    }
+    else{
+        link.innerHTML = "Download your eeprom.bin";
+        link.href = "/eeprom.bin";
+        mode.style.visibility = "visible";
+        defaultMode = true;
+    }
+}
+
+getInfo();
+

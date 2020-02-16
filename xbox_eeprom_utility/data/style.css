@@ -36,6 +36,18 @@ h1{
   font-family: 'Varela Round', sans-serif;
   font-size: 85%;
   position: relative;
+  top: 50px;
+  border-radius: 20px;
+  background: white;
+  padding: 20px;
+  width: 460px;
+  height: 200px;
+}
+
+#infobox {
+  font-family: 'Varela Round', sans-serif;
+  font-size: 85%;
+  position: relative;
   top: 30px;
   border-radius: 20px;
   background: white;
@@ -53,6 +65,11 @@ h1{
     bottom: -10px;
     right: 30px;
     color:green;
+}
+
+#currentSerial {
+    position: absolute;
+    bottom: -10px;
 }
 
 #newHDkey {

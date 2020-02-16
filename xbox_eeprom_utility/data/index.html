@@ -5,28 +5,41 @@
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
-        <script src="scripts.js"></script>
         <h1>Xbox EEPROM Utility</h1>
         <a href="https://github.com/dx4m/Xbox-EEPROM-Utility"><img class="icon" src="eeprom2.png"></a>
         <div id="box">
             <h2>Dump your Xbox EEPROM</h2>
-            <a href="/eeprom.bin">Download your eeprom.bin</a>
-            <h2>.. or flash a new eeprom.bin to your Xbox</h2>
-            <form name="eepromform" action="/" id="eepromfile" method="post" enctype="multipart/form-data">
-                <input id="eepromfilename" name="eeprom" type="file">
-            </form>
-            <br>
-            <button class="inline" onclick="flashEEPROM()">Flash</button>
-            <button class="inline" onclick="setReset()">Reset Xbox</button>
+            <a id="downloadEEPROM" href="/eeprom.bin">Download your eeprom.bin</a>
+            <div id="decryptedMode">
+                <h2>.. or flash a new eeprom.bin to your Xbox</h2>
+                <form name="eepromform" action="/" id="eepromfile" method="post" enctype="multipart/form-data">
+                    <input id="eepromfilename" name="eeprom" type="file">
+                        </form>
+                <br>
+                <button class="inline" onclick="flashEEPROM()">Flash</button>
+                <button class="inline" onclick="setReset()">Reset Xbox</button>
+            </div>
             <p id="flashsuccess"></p>
         </div>
-        <div id="hdkeybox">
-            <h3>Your current HDD Key is:</h3>
-            <p id="currentHDkey"></p>
-            <h3>You can change it here:<h3>
-            <input type="text" id="newHDkey" name="hdkey" maxlength=32><br><br>
-            <button class="inline" onclick="changeKey()">Change Key</button>
-            <button class="inline" onclick="getKey()">Reload Key</button>
+        <div id="infobox">
+            <h2>Infomation about your Xbox</h2>
+            <br>
+            Version: <span id="xversion"></span><br>
+            Serial: <span id="serial"></span><br>
+            HDD Key: <span id="hdkey"></span><br>
+            MAC Address: <span id="macaddr"></span><br>
+            <br><br>
+            <button class="inline" onclick="getInfo()">Reload Information</button>
+            <button class="inline" onclick="copyKey()">Copy HDD Key to Clipboard</button>
         </div>
+        <div id="hdkeybox">
+            <h3>Change your HDD Key here:</h3>
+            <input type="text" id="newHDkey" maxlength=32><br><br><br><br><br><br>
+            <button class="inline" onclick="changeKey()">Change Key</button>
+            <button class="inline" onclick="clearKey()">Clear Key</button>
+            <button class="inline" onclick="nullKey()">NULL Key</button>
+            <button class="inline" onclick="changeTo()">Change Mode</button>
+        </div>
+        <script src="scripts.js"></script>
     </body>
 </html> 
