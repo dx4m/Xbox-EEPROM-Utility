@@ -1,6 +1,7 @@
 /*
 SHA-1 in C
 By Steve Reid <steve@edmweb.com>
+C++ version by S.H. <dx4m>
 100% Public Domain
 
 Test Vectors (from FIPS PUB 180-1)
@@ -15,16 +16,15 @@ A million repetitions of "a"
 /* #define LITTLE_ENDIAN * This should be #define'd already, if true. */
 /* #define SHA1HANDSOFF * Copies data before messing with it. */
 
-#define SHA1HANDSOFF
-
+extern "C"{
 #include <stdio.h>
 #include <string.h>
 
 /* for uint32_t */
 #include <stdint.h>
+}
 
-#include "sha1.h"
-
+#include "sha1.hpp"
 
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
 
@@ -51,11 +51,7 @@ A million repetitions of "a"
 
 /* Hash a single 512-bit block. This is the core of the algorithm. */
 
-void SHA1Transform(
-    uint32_t state[5],
-    const unsigned char buffer[64]
-)
-{
+void SHA1::SHA1Transform(uint32_t state[5], const unsigned char buffer[64]){
     uint32_t a, b, c, d, e;
 
     typedef union
@@ -74,7 +70,7 @@ void SHA1Transform(
      * And the result is written through.  I threw a "const" in, hoping
      * this will cause a diagnostic.
      */
-    CHAR64LONG16 *block = (const CHAR64LONG16 *) buffer;
+    CHAR64LONG16 *block = (CHAR64LONG16 *) buffer;
 #endif
     /* Copy context->state[] to working vars */
     a = state[0];
@@ -176,13 +172,8 @@ void SHA1Transform(
 #endif
 }
 
-
-/* SHA1Init - Initialize new context */
-
-void SHA1Init(
-    SHA1_CTX * context
-)
-{
+/* Init - Initialize new context */
+void SHA1::Init(SHA1_CTX * context){
     /* SHA1 initialization constants */
     context->state[0] = 0x67452301;
     context->state[1] = 0xEFCDAB89;
@@ -194,13 +185,7 @@ void SHA1Init(
 
 
 /* Run your data through this. */
-
-void SHA1Update(
-    SHA1_CTX * context,
-    const unsigned char *data,
-    uint32_t len
-)
-{
+void SHA1::Update(SHA1_CTX * context, const unsigned char *data, uint32_t len){
     uint32_t i;
 
     uint32_t j;
@@ -227,12 +212,7 @@ void SHA1Update(
 
 
 /* Add padding and return the message digest. */
-
-void SHA1Final(
-    unsigned char digest[20],
-    SHA1_CTX * context
-)
-{
+void SHA1::Final(unsigned char digest[20], SHA1_CTX * context){
     unsigned i;
 
     unsigned char finalcount[8];
@@ -262,13 +242,13 @@ void SHA1Final(
     }
 #endif
     c = 0200;
-    SHA1Update(context, &c, 1);
+    Update(context, &c, 1);
     while ((context->count[0] & 504) != 448)
     {
         c = 0000;
-        SHA1Update(context, &c, 1);
+        Update(context, &c, 1);
     }
-    SHA1Update(context, finalcount, 8); /* Should cause a SHA1Transform() */
+    Update(context, finalcount, 8); /* Should cause a SHA1Transform() */
     for (i = 0; i < 20; i++)
     {
         digest[i] = (unsigned char)
@@ -279,17 +259,13 @@ void SHA1Final(
     memset(&finalcount, '\0', sizeof(finalcount));
 }
 
-void SHA1(
-    char *hash_out,
-    const char *str,
-    int len)
-{
+void SHA1::Hash(char *hash_out, const char *str, int len){
     SHA1_CTX ctx;
     unsigned int ii;
 
-    SHA1Init(&ctx);
+    Init(&ctx);
     for (ii=0; ii<len; ii+=1)
-        SHA1Update(&ctx, (const unsigned char*)str + ii, 1);
-    SHA1Final((unsigned char *)hash_out, &ctx);
+        Update(&ctx, (const unsigned char*)str + ii, 1);
+    Final((unsigned char *)hash_out, &ctx);
     hash_out[20] = '\0';
 }

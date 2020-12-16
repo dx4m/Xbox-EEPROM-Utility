@@ -1,3 +1,22 @@
+#ifdef ESP32
+
+#include <WiFi.h>
+#include <WiFiAP.h>
+#include <WiFiMulti.h>
+#include <WiFiUdp.h>
+#include <WiFiScan.h>
+#include <ETH.h>
+#include <WiFiClient.h>
+#include <WiFiSTA.h>
+#include <WiFiServer.h>
+#include <WiFiType.h>
+#include <WiFiGeneric.h>
+#include <WebServer.h>
+#include <ESPmDNS.h>
+#include <SPIFFS.h>
+
+#else
+
 #include <ESP8266mDNS.h>
 #include <WiFiServerSecure.h>
 #include <WiFiClientSecure.h>
@@ -13,6 +32,9 @@
 #include <ESP8266WiFiSTA.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266WebServerSecure.h>
+
+#endif
+
 #include <WiFiManager.h>
 #include <Wire.h>
 
@@ -22,31 +44,32 @@
 #include <ArduinoOTA.h>
 #include <ArduinoJson.h>
 
-static const char PAYLOAD_VERSION[] = "V0.6.1";
+#include "sha1.hpp"
+#include "xbox.hpp"
 
-#ifdef __cplusplus
-extern "C" {
+static const char PAYLOAD_VERSION[] = "V0.7.0";
+
+#ifdef ESP32
+WebServer server(80);
+#else
+ESP8266WebServer server(80);
 #endif
 
-#include "sha1.h"
-#include "xbox.h"
-
-#ifdef __cplusplus
-}
-#endif
-
-/* Uncomment this when using an esp8266-01.  */
+/* Uncomment this when using an ESP-01.  */
 #define ESP01 1
 /* Uncomment when you want to test it without an Xbox */
 //#define TESTMODE 1
 
-/* Uncomment this when you power your esp8266 from your Xbox (added delay) */
+/* Uncomment this when you power your ESP32 or ESP8266 board from your Xbox (added delay) */
 #define POWERFROMXBOX 1
 
-/* i2c pins depending on your esp8266 */
+/* i2c pins depending on your ESP32 or ESP8266 */
 #ifdef ESP01
 #define sda 2
 #define scl 0
+#elif ESP32
+#define sda 21
+#define scl 22
 #else
 #define sda D2
 #define scl D1
@@ -68,65 +91,8 @@ int found_smc = 0;
 #define SKIP_ANIMATION 0x04
 #define RUN_DASH 0x08
 
-typedef struct
-{
-    unsigned char HMAC_SHA1_Hash[20];
-    unsigned char Confounder[8];
-    unsigned char HDDKey[16];
-    unsigned char XBERegion[4];
-} eepromdata;
-
 int xversion = -1;
-eepromdata curSetting;
-
-void XDecrypt(unsigned char *eep){
-  eepromdata data;
-
-  unsigned char key_hash[20];
-  unsigned char hash_confirm[20];
-
-  int verloop = VERSION_10;
-  while(verloop <= VERSION_DBG){
-    memcpy(&data, eep, sizeof(eepromdata));
-    xbx_hmac(verloop, key_hash, &data.HMAC_SHA1_Hash, 20, NULL);
-    RC4KEY pRC4;
-    InitRC4(key_hash, 20, &pRC4);
-    RC4Crypt((unsigned char*)&data+20, 28, &pRC4);
-
-    xbx_hmac(verloop, hash_confirm, &data.Confounder, 8, &data.HDDKey, 16, &data.XBERegion, 4, NULL);
-    if(memcmp(hash_confirm, &data.HMAC_SHA1_Hash, 20) == 0){
-      break;
-    }
-    verloop++;
-  }
-
-  xversion = verloop;
-
-  memcpy(eep, &data, sizeof(eepromdata));
-}
-
-void XEncrypt(unsigned char *eep){
-  eepromdata data;
-
-  unsigned char key_hash[20];
-  memcpy(&data, eep, sizeof(eepromdata));
-
-  Serial.print("** xversion: ");
-  Serial.print(xversion);
-  Serial.println();
-
-  xbx_hmac(xversion, key_hash, &data.Confounder, 8, &data.HDDKey, 16, &data.XBERegion, 4, NULL);
-  memcpy(data.HMAC_SHA1_Hash, key_hash, 0x14);
-  xbx_hmac(xversion, key_hash, &data.HMAC_SHA1_Hash, 20, NULL);
-  
-  RC4KEY pRC4;
-  InitRC4(key_hash, 20, &pRC4);
-  RC4Crypt((unsigned char *)&data+20, 28, &pRC4);
-
-  memcpy(eep, &data, sizeof(eepromdata));
-}
-
-ESP8266WebServer server(80);
+XboxCrypto::eepromdata curSetting;
 
 byte xReadEEPROM(int i2c, unsigned int addr){
   byte r = 0xFF;
@@ -174,6 +140,16 @@ class XboxEeprom: public Stream
 #else
       return xReadEEPROM(eep_addr, i-1);
 #endif
+    }
+
+    virtual int read(uint8_t *buffer, size_t size){
+      for(size_t u=0;u<size;u++,i++,eepromsize--){
+#ifdef TESTMODE
+        buffer[u] = EEPROM.read(i-1);
+#else
+        buffer[u] = xReadEEPROM(eep_addr, i-1);
+#endif
+      }
     }
     virtual int peek(){
 #ifdef TESTMODE
@@ -238,7 +214,10 @@ void readDecrEEPROMFromXbox(byte *ram){
   }
   eeprom.close();
 
-  XDecrypt(ram);
+  XboxCrypto *xbx = new XboxCrypto();
+  xbx->decrypt(ram);
+
+  delete []xbx;
 }
 
 void writeEEPROMToXbox(byte *ram){
@@ -248,11 +227,18 @@ void writeEEPROMToXbox(byte *ram){
 }
 
 void writeDecrEEPROMToXbox(byte *ram){
-  XEncrypt(ram);
-  
+  unsigned char tmp[48];
   XboxEeprom eeprom(0x100);
-  eeprom.write(ram, 0x100);
+  eeprom.read(tmp, 48);
   eeprom.close();
+  XboxCrypto *xbx = new XboxCrypto();
+  if(xbx->decrypt(tmp) > 0){
+    if(xbx->encrypt(ram) == 0){
+      eeprom.write(ram, 0x100);
+      eeprom.close();
+    }
+  }
+  delete []xbx;
 }
 
 class DecrEeprom : public Stream
@@ -434,35 +420,47 @@ void handleHDDKeyUpdate(){
   root["hdkey"] = curHDKeyStr;
 
   /* XVersion detection is available until eeprom decryption */
+  Serial.print("Xbox Version: ");
   switch(xversion){
     case VERSION_10:
     {
         root["xversion"] = "v1.0";
+        Serial.println("v1.0");
         break;
     }
     case VERSION_11:
     {
-        root["xversion"] = "v1.1 - v1.5";  
+        root["xversion"] = "v1.1 - v1.5";
+        Serial.println("v1.1 - v1.5");  
         break;
     }
     case VERSION_16:
     {
         root["xversion"] = "v1.6 / v1.6b";
+        Serial.println("v1.6 / v1.6b");
         break;
     }
 
     case VERSION_DBG:
     {
         root["xversion"] = "DEBUG KIT";
+        Serial.println("DEBUG KIT");
         break;
     }
 
     default:
     {
         root["xversion"] = "UNDEFINED";
+        Serial.println("UNDEFINED");
         break;
     }
   }
+  Serial.print("SN: ");
+  Serial.println(SerialNumber);
+  Serial.print("MAC Address: ");
+  Serial.println(macaddrStr);
+  Serial.print("HDD Key: ");
+  Serial.println(curHDKeyStr);
   
   if(server.hasArg("hdkey")){
     char hdkey_str[35];
@@ -495,23 +493,30 @@ void handleHDDKeyUpdate(){
 void setHDDKey(unsigned char *hdkey){
   unsigned char d[256];
   readEEPROMFromXbox(d);
-  XDecrypt(d);
-  eepromdata data;
-  memcpy(&data, d, sizeof(eepromdata));
 
-  memcpy(data.HDDKey, hdkey, 16);
+  XboxCrypto::eepromdata data;
 
-  memcpy(d, &data, sizeof(eepromdata));
-  XEncrypt(d);
-  writeEEPROMToXbox(d);
+  XboxCrypto *xbx = new XboxCrypto();
+  if(xbx->decrypt(d) > 0){
+    memcpy(&data, d, sizeof(XboxCrypto::eepromdata));
+    memcpy(data.HDDKey, hdkey, 16);
+    memcpy(d, &data, sizeof(XboxCrypto::eepromdata));
+    if(xbx->encrypt(d) == 0){
+      writeEEPROMToXbox(d);
+    }
+  }
+  delete []xbx;
 }
 
 void getHDDKey(void){
   unsigned char d[256];
   readEEPROMFromXbox(d);
-  char key_str[2];
-  XDecrypt(d);
-  memcpy(&curSetting, d, sizeof(eepromdata));
+  XboxCrypto *xbx = new XboxCrypto();
+  if(xbx->decrypt(d) > 0){
+    memcpy(&curSetting, d, sizeof(XboxCrypto::eepromdata));
+    xversion = xbx->getVersion();
+  }
+  delete []xbx;
 }
 
 void setup() {
@@ -582,12 +587,12 @@ void setup() {
   }
   
   WiFiManager wifiManager;
-  wifiManager.autoConnect("xbxdmp");
-  MDNS.begin("xbxdmp");
+  wifiManager.autoConnect("xeu");
+  MDNS.begin("xeu");
   MDNS.addService("http", "tcp", 80);
   SPIFFS.begin(); 
   ArduinoOTA.setPort(8266);
-  ArduinoOTA.setHostname("xbxdmp");
+  ArduinoOTA.setHostname("xeu");
   ArduinoOTA.begin();
   
   if(found_eeprom){
