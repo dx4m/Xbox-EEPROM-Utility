@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Xbox EEPROM Utility</title>
+        <title>Xbox EEPROM Utility w/ XWiFi</title>
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
-        <h1>Xbox-EEPROM-Utility</h1>
+        <h1>Xbox-EEPROM-Utility w/ XWiFi</h1>
         <a href="https://github.com/dx4m/Xbox-EEPROM-Utility"><img class="icon" src="eeprom3.png"></a>
         <div id="box">
             <h2>Dump your Xbox EEPROM</h2>
@@ -13,10 +13,14 @@
             <div id="decryptedMode">
                 <h2>.. or flash a new eeprom.bin to your Xbox</h2>
                 <form name="eepromform" action="/" id="eepromfile" method="post" enctype="multipart/form-data">
-                    <input id="eepromfilename" name="eeprom" type="file">
+                    <input id="eepromfilename" name="eeprom" type="file" hidden/>
+                    <button type="button" class="inline"><label for="eepromfilename">Choose EEPROM</label></button>
+                    <span id="filechosen">No EEPROM chosen.</span>
                         </form>
                 <br>
                 <button class="inline" onclick="flashEEPROM()">Flash</button>
+                <button class="inline" onclick="togglePower(0)">Toggle Power</button>
+                <button class="inline" onclick="togglePower(1)">Toggle Eject</button>
                 <button class="inline" onclick="setReset()">Reset Xbox</button>
                 <form name="updateform" action="/" id="updatefile" method="post" enctype="multipart/form-data" style="display: inline-block;">
                     <input id="updatefilename" name="update" type="file" hidden/>
@@ -33,7 +37,7 @@
             HDD Key: <span id="hdkey"></span><br>
             MAC Address: <span id="macaddr"></span><br>
             <br><br>
-            <button class="inline" onclick="getInfo()">Reload Information</button>
+            <button class="inline" onclick="getInfo(0)">Reload Information</button>
             <button class="inline" onclick="copyKey()">Copy HDD Key to Clipboard</button>
         </div>
         <div id="hdkeybox">
@@ -44,6 +48,25 @@
             <button class="inline" onclick="nullKey()">NULL Key</button>
             <button class="inline" onclick="changeTo()">Change Mode</button>
         </div>
-        <script src="scripts.js"></script>
+        <div id="configbox">
+            <h3>Configuration</h3>
+            <input type="checkbox" id="bootfade" name="bootfade" onclick="setBootLEDFade()">
+            <label for="bootfade">ESP Boot LED Fade</label><br>
+            <input type="checkbox" id="standby" name="standby" onclick="setStandbyLight()">
+  	    <label for="standby">Standby light</label>
+  	    <br>
+  	    <label for="greenled">Green LED (between 0 and 1023):</label>
+  	    <input type="number" id="greenled" name="greenled" min="0" max="1023" onchange="setStandbyGreenValue()"><br>
+  	    <label for="redled">Red LED (between 0 and 1023):</label>
+  	    <input type="number" id="redled" name="redled" min="0" max="1023" onchange="setStandbyRedValue()"><br><br>
+            <button class="inline" onclick="backupEEPROMToFlash()">Backup EEPROM to internal Flash</button>
+            <button class="inline" onclick="saveConfiguration()">Save settings</button>
+            <button class="inline" onclick="resetESP()">Reset ESP</button>
+            <button class="inline" onclick="restoreEEPROMToFlash()">Restore EEPROM from internal Flash</button>
+            <button class="inline" onclick="loadConfiguration()">Load settings</button>
+            <button class="inline" onclick="resetConfiguration()">Reset config</button>
+            
+        </div>
+        <script src="scripts2.js"></script>
     </body>
 </html> 

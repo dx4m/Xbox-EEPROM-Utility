@@ -116,5 +116,25 @@ function changeTo(){
     }
 }
 
+function updateESP(){
+    
+    if(document.updateform.update.value == ""){
+        alert("Please, select first a file.");
+        return;
+    }
+    
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/update", true);
+    var formData = new FormData(document.getElementById("updatefile"));
+    xhr.send(formData);
+    alert("Update completed. Wait a few seconds, so your ESP can reset correctly and then press OK. :)");
+    location.reload(true);
+}
+
+var updateUploadButton = document.getElementById("updatefilename");
+updateUploadButton.addEventListener('change', function(){
+  updateESP();
+});
+
 getInfo();
 

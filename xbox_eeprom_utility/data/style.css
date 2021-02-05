@@ -6,19 +6,35 @@
     src: url(/Varela-Mini.woff2) format('woff2');
     unicode-range: U+0000-007F;
 }
-body    {
-    background-color: lightgray;
+body{
+    background-color: lightgrey;
     margin: auto;
     padding: 10px;
-    max-width: 500px;
+    max-width: 1030px;
+    min-width: 1030px;
 }
 
 h1{
     font-family: 'Varela Round', sans-serif;
     margin: auto;
     padding: 10px;
-    max-width: 500px;
+    position: relative;
+    left: 30px;
 }
+
+input[type=text] {
+  padding: 5px 10px;
+}
+
+input[type=number] {
+  padding: 0px 0px;
+  width: 60px;
+  height: 25px;
+  display: inline-block;
+  border-block-width: 1px;
+  border-radius: 5px;
+}
+
 
 #box {
   font-family: 'Varela Round', sans-serif;
@@ -30,13 +46,15 @@ h1{
   padding: 20px;
   width: 460px;
   height: 200px;
+  left: 30px;
 }
 
 #hdkeybox {
   font-family: 'Varela Round', sans-serif;
   font-size: 85%;
   position: relative;
-  top: 50px;
+  top: 30px;
+  left: 30px;
   border-radius: 20px;
   background: white;
   padding: 20px;
@@ -47,8 +65,24 @@ h1{
 #infobox {
   font-family: 'Varela Round', sans-serif;
   font-size: 85%;
+  float: right;
   position: relative;
-  top: 30px;
+  top: -230px;
+  left: 20px;
+  border-radius: 20px;
+  background: white;
+  padding: 20px;
+  width: 460px;
+  height: 200px;
+}
+
+#configbox {
+  font-family: 'Varela Round', sans-serif;
+  font-size: 85%;
+  float: right;
+  position: relative;
+  top: -210px;
+  left: 20px;
   border-radius: 20px;
   background: white;
   padding: 20px;
@@ -77,11 +111,19 @@ h1{
 }
 
 .inline {
-   display:inline-block;
-   margin-right:2px;
+   display: inline-block;
+   margin-right: 1px;
+   padding: 3px;
+   border-color: #c4c4c4;
+   border-radius: 3px;
+   border-width: 1px;
+   background-color: #fcfcfc;
+   cursor: pointer;
 }
 
 .icon{
     float:right;
     margin-top:-70px;
+    position: relative;
+    left: 50px;
 }
