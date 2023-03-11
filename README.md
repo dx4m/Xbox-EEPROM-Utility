@@ -4,7 +4,7 @@ It is expandable to do some SMC related stuff too, like LED control of your cons
 
 # XWiFi
 XEU is combined with XWiFi, XWiFi is a XERC2 like option that let you turn on and off your console, ejecting the DVD drive and drive LED's in the console's off state. 
-You can configure a standby led in the red/green value you wan't PWM. XWiFi requires a pin compatible ESP chip and soldering is needed. For installation you could use any XERC2 installation diagram.
+You can configure a standby led in the red/green value you wan't (PWM). XWiFi requires a pin compatible ESP chip and soldering is needed. For installation you could use any XERC2 installation diagram.
 This is ONLY over WiFi. So no remote control!
 
 # XEU Features

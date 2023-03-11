@@ -537,7 +537,7 @@ void handleFileUpload() {
       }
     }
   }
-  else if (upload.status = UPLOAD_FILE_END) {
+  else if (upload.status == UPLOAD_FILE_END) {
 #ifdef XWIFI
     if (wasOff) {
       delay(1000);
@@ -619,7 +619,7 @@ void handleUpdateUpload() {
       Serial.print(".");
     }
   }
-  else if (upload.status = UPLOAD_FILE_END) {
+  else if (upload.status == UPLOAD_FILE_END) {
     if (Update.end(true)) {
       Serial.println(" Flashing successfully");
       Serial.println("Rebooting now");
