@@ -86,7 +86,7 @@ ESP8266WebServer server(80);
 #ifdef ESP01
 #define sda 2
 #define scl 0
-#elif ESP32
+#elif defined(ESP32)
 #define sda 21
 #define scl 22
 #else
