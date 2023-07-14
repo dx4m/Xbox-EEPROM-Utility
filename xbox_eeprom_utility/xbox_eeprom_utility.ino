@@ -271,7 +271,7 @@ void writeDecrEEPROMToXbox(byte *ram) {
   eeprom.read(tmp, 48);
   eeprom.close();
   XboxCrypto *xbx = new XboxCrypto();
-  if (xbx->decrypt(tmp) > 0) {
+  if (xbx->decrypt(tmp) >= 0) {
     if (xbx->encrypt(ram) == 0) {
       eeprom.write(ram, 0x100);
       eeprom.close();
@@ -958,7 +958,7 @@ void setHDDKey(unsigned char *hdkey) {
   XboxCrypto::eepromdata data;
 
   XboxCrypto *xbx = new XboxCrypto();
-  if (xbx->decrypt(d) > 0) {
+  if (xbx->decrypt(d) >= 0) {
     memcpy(&data, d, sizeof(XboxCrypto::eepromdata));
     memcpy(data.HDDKey, hdkey, 16);
     memcpy(d, &data, sizeof(XboxCrypto::eepromdata));
@@ -973,7 +973,7 @@ void getHDDKey(void) {
   unsigned char d[256];
   readEEPROMFromXbox(d);
   XboxCrypto *xbx = new XboxCrypto();
-  if (xbx->decrypt(d) > 0) {
+  if (xbx->decrypt(d) >= 0) {
     memcpy(&curSetting, d, sizeof(XboxCrypto::eepromdata));
     xversion = xbx->getVersion();
   }
